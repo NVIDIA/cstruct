@@ -1,8 +1,10 @@
 package cstruct
 
-import "bytes"
-import "reflect"
-import "testing"
+import (
+	"bytes"
+	"reflect"
+	"testing"
+)
 
 type ChildStruct struct {
 	Btrue  bool

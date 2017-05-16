@@ -15,9 +15,11 @@
 //   []byte - a trailing arbitrarily long slice of bytes
 package cstruct
 
-import "encoding/binary"
-import "fmt"
-import "reflect"
+import (
+	"encoding/binary"
+	"fmt"
+	"reflect"
+)
 
 // LittleEndian byte order (i.e. least signficant byte first) for {|u}int{16|32|64} types
 var LittleEndian = binary.LittleEndian

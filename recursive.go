@@ -1,9 +1,10 @@
 package cstruct
 
-import "encoding/binary"
-
-import "fmt"
-import "reflect"
+import (
+	"encoding/binary"
+	"fmt"
+	"reflect"
+)
 
 func examineRecursive(obj reflect.Value) (bytesNeeded uint64, trailingByteSlice bool, err error) {
 	// First check for "encapsulating" obj.Kind()'s
