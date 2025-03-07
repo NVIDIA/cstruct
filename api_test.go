@@ -42,11 +42,11 @@ func TestExamine(t *testing.T) {
 
 	parentStructBytesNeeded, parentTrailingByteSlice, err := Examine(parent)
 
-	if nil != err {
+	if err != nil {
 		t.Fatalf("Examine(parent) returned unexpected error: %v", err)
 	}
 
-	if 57 != parentStructBytesNeeded {
+	if parentStructBytesNeeded != 57 {
 		t.Fatalf("Examine(parent) returned unexpected bytesNeeded: %v (should have been 57)", parentStructBytesNeeded)
 	}
 
@@ -58,11 +58,11 @@ func TestExamine(t *testing.T) {
 
 	dynamicStructBytesNeeded, dynamicTrailingByteSlice, err := Examine(dynamic)
 
-	if nil != err {
+	if err != nil {
 		t.Fatalf("Examine(dynamic) returned unexpected error: %v", err)
 	}
 
-	if 2 != dynamicStructBytesNeeded {
+	if dynamicStructBytesNeeded != 2 {
 		t.Fatalf("Examine(dynamic) returned unexpected bytesNeeded: %v (should have been 2)", dynamicStructBytesNeeded)
 	}
 
@@ -136,18 +136,18 @@ func TestPack(t *testing.T) {
 	}
 
 	parentPackedLittleEndianReturned, err := Pack(parent, LittleEndian)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("Pack(parent, LittleEndian) returned unexpected error: %v", err)
 	}
-	if 0 != bytes.Compare(parentPackedLittleEndianExpected, parentPackedLittleEndianReturned) {
+	if !bytes.Equal(parentPackedLittleEndianExpected, parentPackedLittleEndianReturned) {
 		t.Fatalf("Pack(parent, LittleEndian) returned unexpected dst []byte")
 	}
 
 	parentPackedBigEndianReturned, err := Pack(parent, BigEndian)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("Pack(parent, BigEndian) returned unexpected error: %v", err)
 	}
-	if 0 != bytes.Compare(parentPackedBigEndianExpected, parentPackedBigEndianReturned) {
+	if !bytes.Equal(parentPackedBigEndianExpected, parentPackedBigEndianReturned) {
 		t.Fatalf("Pack(parent, BigEndian) returned unexpected dst []byte")
 	}
 
@@ -167,18 +167,18 @@ func TestPack(t *testing.T) {
 	}
 
 	dynamicPackedLittleEndianReturned, err := Pack(dynamic, LittleEndian)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("Pack(dynamic, LittleEndian) returned unexpected error: %v", err)
 	}
-	if 0 != bytes.Compare(dynamicPackedLittleEndianExpected, dynamicPackedLittleEndianReturned) {
+	if !bytes.Equal(dynamicPackedLittleEndianExpected, dynamicPackedLittleEndianReturned) {
 		t.Fatalf("Pack(dynamic, LittleEndian) returned unexpected dst []byte")
 	}
 
 	dynamicPackedBigEndianReturned, err := Pack(dynamic, BigEndian)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("Pack(dynamic, BigEndian) returned unexpected error: %v", err)
 	}
-	if 0 != bytes.Compare(dynamicPackedBigEndianExpected, dynamicPackedBigEndianReturned) {
+	if !bytes.Equal(dynamicPackedBigEndianExpected, dynamicPackedBigEndianReturned) {
 		t.Fatalf("Pack(dynamic, BigEndian) returned unexpected dst []byte")
 	}
 }
@@ -250,7 +250,7 @@ func TestUnpack(t *testing.T) {
 	parentReturnedFromUnpackParentPackedLittleEndian := ParentStruct{}
 
 	bytesConsumedByUnpackParentPackedLittleEndian, err := Unpack(parentPackedLittleEndian, &parentReturnedFromUnpackParentPackedLittleEndian, LittleEndian)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("Unpack(parentPackedLittleEndian, &parentReturnedFromUnpackParentPackedLittleEndian, LittleEndian) returned unexpected error: %v", err)
 	}
 	if uint64(len(parentPackedLittleEndian)) != bytesConsumedByUnpackParentPackedLittleEndian {
@@ -263,7 +263,7 @@ func TestUnpack(t *testing.T) {
 	parentReturnedFromUnpackParentPackedBigEndian := ParentStruct{}
 
 	bytesConsumedByUnpackParentPackedBigEndian, err := Unpack(parentPackedBigEndian, &parentReturnedFromUnpackParentPackedBigEndian, BigEndian)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("Unpack(parentPackedBigEndian, &parentReturnedFromUnpackParentPackedBigEndian, BigEndian) returned unexpected error: %v", err)
 	}
 	if uint64(len(parentPackedBigEndian)) != bytesConsumedByUnpackParentPackedBigEndian {
@@ -291,7 +291,7 @@ func TestUnpack(t *testing.T) {
 	dynamicReturnedFromUnpackDynamicPackedLittleEndian := DynamicStruct{}
 
 	bytesConsumedByUnpackDynamicPackedLittleEndian, err := Unpack(dynamicPackedLittleEndian, &dynamicReturnedFromUnpackDynamicPackedLittleEndian, LittleEndian)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("Unpack(dynamicPackedLittleEndian, &dynamicReturnedFromUnpackDynamicPackedLittleEndian, LittleEndian) returned unexpected error: %v", err)
 	}
 	if uint64(len(dynamicPackedLittleEndian)) != bytesConsumedByUnpackDynamicPackedLittleEndian {
@@ -304,7 +304,7 @@ func TestUnpack(t *testing.T) {
 	dynamicReturnedFromUnpackDynamicPackedBigEndian := DynamicStruct{}
 
 	bytesConsumedByUnpackDynamicPackedBigEndian, err := Unpack(dynamicPackedBigEndian, &dynamicReturnedFromUnpackDynamicPackedBigEndian, BigEndian)
-	if nil != err {
+	if err != nil {
 		t.Fatalf("Unpack(dynamicPackedBigEndian, &dynamicReturnedFromUnpackDynamicPackedBigEndian, BigEndian) returned unexpected error: %v", err)
 	}
 	if uint64(len(dynamicPackedBigEndian)) != bytesConsumedByUnpackDynamicPackedBigEndian {
