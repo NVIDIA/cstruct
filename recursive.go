@@ -5,6 +5,7 @@ package cstruct
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"reflect"
 )
@@ -45,28 +46,28 @@ func examineRecursive(obj reflect.Value) (bytesNeeded uint64, trailingByteSlice 
 	case reflect.Uint64:
 		bytesNeeded = 8
 	case reflect.Array:
-		for i := 0; i < obj.Len(); i++ {
+		for i := range obj.Len() {
 			elementBytesNeeded, elementTrailingByteSlice, elementErr := examineRecursive(obj.Index(i))
-			if nil != elementErr {
+			if elementErr != nil {
 				err = elementErr
 				return
 			}
 			if elementTrailingByteSlice {
-				err = fmt.Errorf("Array of slices not unsupported")
+				err = errors.New("array of slices not unsupported")
 				return
 			}
 			bytesNeeded += elementBytesNeeded
 		}
 	case reflect.Struct:
-		for i := 0; i < obj.NumField(); i++ {
+		for i := range obj.NumField() {
 			fieldBytesNeeded, fieldTrailingByteSlice, fieldErr := examineRecursive(obj.Field(i))
-			if nil != fieldErr {
+			if fieldErr != nil {
 				err = fieldErr
 				return
 			}
 			if fieldTrailingByteSlice {
 				if i < (obj.NumField() - 1) {
-					err = fmt.Errorf("[]byte field only supported at end of object")
+					err = errors.New("[]byte field only supported at end of object")
 					return
 				}
 
@@ -76,7 +77,7 @@ func examineRecursive(obj reflect.Value) (bytesNeeded uint64, trailingByteSlice 
 		}
 	case reflect.Slice:
 		sliceType := obj.Type().Elem()
-		if "uint8" == sliceType.String() {
+		if sliceType.String() == "uint8" {
 			bytesNeeded = 0 // Indeterminate by just looking at obj... but obj will consume remainder of buffer (i.e. obj is always last)
 			trailingByteSlice = true
 		} else {
@@ -238,17 +239,18 @@ func packRecursive(srcObj reflect.Value, oldDst []byte, oldOffset uint64, byteOr
 	case reflect.Array:
 		newDst = oldDst
 		newOffset = oldOffset
-		for i := 0; i < srcObj.Len(); i++ {
+		for i := range srcObj.Len() {
 			newDst, newOffset = packRecursive(srcObj.Index(i), newDst, newOffset, byteOrder)
 		}
 	case reflect.Struct:
 		newDst = oldDst
 		newOffset = oldOffset
-		for i := 0; i < srcObj.NumField(); i++ {
+		for i := range srcObj.NumField() {
 			newDst, newOffset = packRecursive(srcObj.Field(i), newDst, newOffset, byteOrder)
 		}
 	case reflect.Slice:
-		newDst = append(oldDst, srcObj.Bytes()...)
+		newDst = oldDst
+		newDst = append(newDst, srcObj.Bytes()...)
 		newOffset = uint64(len(newDst))
 	}
 
@@ -266,7 +268,7 @@ func unpackRecursive(src []byte, oldOffset uint64, dstObj reflect.Value, byteOrd
 		newOffset = unpackRecursive(src, oldOffset, dstObj.Elem(), byteOrder)
 	case reflect.Bool:
 		u64 = uint64(src[oldOffset+0])
-		if 0x00 == u64 {
+		if u64 == 0 {
 			dstObj.SetBool(false)
 		} else {
 			dstObj.SetBool(true)
@@ -274,7 +276,7 @@ func unpackRecursive(src []byte, oldOffset uint64, dstObj reflect.Value, byteOrd
 		newOffset = oldOffset + 1
 	case reflect.Int8:
 		u64 = uint64(src[oldOffset+0])
-		if 0 == ((u64 >> 0x07) & 0x01) {
+		if ((u64 >> 0x07) & 0x01) == 0 {
 			i64 = int64(u64)
 		} else {
 			i64 = -int64(^((u64 - 1) | uint64(0xFFFFFFFFFFFFFF00)))
@@ -293,7 +295,7 @@ func unpackRecursive(src []byte, oldOffset uint64, dstObj reflect.Value, byteOrd
 			u64 = uint64(src[oldOffset+0])
 			u64 = (u64 << 0x08) + uint64(src[oldOffset+1])
 		}
-		if 0 == ((u64 >> 0x0F) & 0x01) {
+		if ((u64 >> 0x0F) & 0x01) == 0 {
 			i64 = int64(u64)
 		} else {
 			i64 = -int64(^((u64 - 1) | uint64(0xFFFFFFFFFFFF0000)))
@@ -322,7 +324,7 @@ func unpackRecursive(src []byte, oldOffset uint64, dstObj reflect.Value, byteOrd
 			u64 = (u64 << 0x08) + uint64(src[oldOffset+2])
 			u64 = (u64 << 0x08) + uint64(src[oldOffset+3])
 		}
-		if 0 == ((u64 >> 0x1F) & 0x01) {
+		if ((u64 >> 0x1F) & 0x01) == 0 {
 			i64 = int64(u64)
 		} else {
 			i64 = -int64(^((u64 - 1) | uint64(0xFFFFFFFF00000000)))
@@ -363,7 +365,7 @@ func unpackRecursive(src []byte, oldOffset uint64, dstObj reflect.Value, byteOrd
 			u64 = (u64 << 0x08) + uint64(src[oldOffset+6])
 			u64 = (u64 << 0x08) + uint64(src[oldOffset+7])
 		}
-		if 0 == ((u64 >> 0x3F) & 0x01) {
+		if ((u64 >> 0x3F) & 0x01) == 0 {
 			i64 = int64(u64)
 		} else {
 			i64 = -int64(^(u64 - 1))
@@ -394,12 +396,12 @@ func unpackRecursive(src []byte, oldOffset uint64, dstObj reflect.Value, byteOrd
 		newOffset = oldOffset + 8
 	case reflect.Array:
 		newOffset = oldOffset
-		for i := 0; i < dstObj.Len(); i++ {
+		for i := range dstObj.Len() {
 			newOffset = unpackRecursive(src, newOffset, dstObj.Index(i), byteOrder)
 		}
 	case reflect.Struct:
 		newOffset = oldOffset
-		for i := 0; i < dstObj.NumField(); i++ {
+		for i := range dstObj.NumField() {
 			newOffset = unpackRecursive(src, newOffset, dstObj.Field(i), byteOrder)
 		}
 	case reflect.Slice:
